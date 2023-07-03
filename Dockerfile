@@ -1,7 +1,7 @@
 # --- Build Node ---
 FROM rust:slim-bullseye AS Builder
-LABEL org.opencontainers.image.authors="jojo141185"
-LABEL org.opencontainers.image.source="https://github.com/jojo141185/mopidy-docker/"
+LABEL org.opencontainers.image.authors="chourmovs"
+LABEL org.opencontainers.image.source="https://github.com/chourmovs/mopidy-gs-spotify/"
 ARG TARGETPLATFORM
 ARG TARGETARCH
 ARG TARGETVARIANT

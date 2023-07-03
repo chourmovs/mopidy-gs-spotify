@@ -46,6 +46,7 @@ RUN git clone -c advice.detachedHead=false \
 	--single-branch --depth 1 \
 	--branch ${GST_PLUGINS_RS_TAG} \
 	https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs.git ./
+ 
 # EXPERIMENTAL: For gstreamer-spotify set upgraded version number of dependency librespot to 0.4.2 
 RUN sed -i 's/librespot = { version = "0.4", default-features = false }/librespot = { version = "0.4.2", default-features = false }/g' audio/spotify/Cargo.toml
 

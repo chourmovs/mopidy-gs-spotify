@@ -143,11 +143,13 @@ RUN git clone --depth 1 --single-branch -b ${IRIS_VERSION} https://github.com/ja
     && cp /iris/VERSION /
 
 # Install Mopidy-Spotify
-RUN git clone --depth 1 --single-branch -b main https://github.com/mopidy/mopidy-spotify.git mopidy-spotify \
-    && cd mopidy-spotify \
-    && python3 setup.py install \
-    && cd .. \
-    && rm -rf mopidy-spotify
+#RUN git clone --depth 1 --single-branch -b main https://github.com/mopidy/mopidy-spotify.git mopidy-spotify \
+#    && cd mopidy-spotify \
+#    && python3 setup.py install \
+#    && cd .. \
+#    && rm -rf mopidy-spotify
+RUN wget https://github.com/chourmovs/gst-plugins-rs-chouchou/releases/download/2023-07-02/gst-plugin-spotify_0.10.9_armhf.deb
+	&& dpkg -i gst-plugin-spotify_0.10.9_armhf.deb
 
 # Install mopidy-radionet
 RUN git clone --depth 1 --single-branch -b master https://github.com/plintx/mopidy-radionet.git mopidy-radionet \

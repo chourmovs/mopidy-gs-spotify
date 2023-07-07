@@ -1,44 +1,144 @@
-name: Build and Push Docker Image to Docker Hub 
+name: Build multi-arch docker images and publish on DockerHub
 
+# Control when actions will run
+# Triggers the workflow on push or pull request events but only for the main/master branch
 on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: Log level     
+        required: false
+        default: warning
   push:
-    branches: [ "dev", "main", "testarch" ]
+    branches:
+      - main
+      - develop
+    tags:
+      - 'v*'
+    paths-ignore:
+      - '**.md'
+      #- '.github/workflows/**'
+      - 'docs/**'
   pull_request:
-    branches: [ "dev", "main", "testarch" ]
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+      #- '.github/workflows/**'
+      - 'docs/**'
+  schedule:
+    - cron: '0 5 * * *' # everyday at 5am
 
-env:
-  # Use docker.io for Docker Hub if empty
-  REGISTRY: docker.io
-  # github.repository as <account>/<repo>
-  IMAGE_NAME: ${{ github.repository }}
-
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  push_to_registry:
-    name: Push Docker image to Docker Hub
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out the repo
-        uses: actions/checkout@v3
+    # This workflow contains a single job called "release"
+    release:
+        # The type of runner that the job will run on
+        runs-on: ubuntu-latest
+        
+        # Set environment variables
+        env:
+          DOCKERHUB_SLUG: chourmovs/mopidy-gs-spotify
+          
+        # Steps represent a sequence of tasks that will be executed as part of the job
+        steps:
+          # Github action to get branch or tag information without the /ref/* prefix
+          - name: Get branch names
+            id: branch-name
+            uses: tj-actions/branch-names@v6
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+          # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+          - name: Checkout
+            uses: actions/checkout@v3
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
-        with:
-          username: ${{ secrets.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          # GitHub Action to extract metadata (tags, labels) for Docker.
+          - name: Docker meta
+            id: docker_meta
+            uses: docker/metadata-action@v4
+            with:
+              github-token: ${{ secrets.GITHUB_TOKEN }}
+              images: |
+                ${{ env.DOCKERHUB_SLUG }}
+              tags: |
+                type=schedule,pattern=latest
+                type=semver,pattern={{version}}
+                type=edge,branch=${{ steps.branch-name.outputs.default_branch }}
+                type=raw,value=develop,enable=${{ github.ref == format('refs/heads/{0}', 'develop') }}
+                type=ref,event=branch,enable=${{ !(steps.branch-name.outputs.default_branch) && (github.ref != format('refs/heads/{0}', 'develop')) }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          # GitHub Action to install QEMU static binaries.
+          - name: Set up QEMU
+            uses: docker/setup-qemu-action@v2
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v2
-        with:
-          context: "{{defaultContext}}"
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          # GitHub Action to set up Docker Buildx.
+          - name: Set up Docker Buildx
+            uses: docker/setup-buildx-action@v2
+            with:
+              buildkitd-flags: "--debug"
+
+          #   # GitHub Action to free disk space on Ubuntu action runners.
+          # - name: Free Disk Space (Ubuntu)
+          #   uses: jlumbroso/free-disk-space@main
+
+          # Hack to fix Error "Value too large for defined data type;" on arm/v7 and linux/386  
+          # https://github.com/crazy-max/ghaction-docker-buildx/issues/172
+          # 1. Create Swapfile of 25GB (1MBx25K) size to increase hosts (virtual) ram
+          # 2. Mount tempfs with max. size of Swapfile + host's Phys.RAM (max ~6 GB) to dockers filesystem /var/lib/docker (volumes, etc.)
+          # Note: If tempfs is too small for build the runner will receive a shutdown signal
+          - name: Hack docker filesystem to create small tmpfs for docker cache
+            run: |
+              df -h
+              sudo swapon --show
+              sudo dd if=/dev/zero of=/swapfile1 bs=1M count=25K 
+              sudo chmod 600 /swapfile1
+              sudo mkswap /swapfile1
+              sudo swapon /swapfile1
+              sudo swapon --show
+              sudo free -h
+              sudo systemctl stop docker
+              sudo mount -t tmpfs -o size=28G tmpfs /var/lib/docker
+              df -h
+              sudo systemctl start docker
+      
+          # GitHub Action to login to DockerHub.
+          -   name: Login to DockerHub
+              uses: docker/login-action@v2
+              with:
+                  username: ${{ secrets.DOCKER_USER }}
+                  password: ${{ secrets.DOCKER_PASSWORD }}
+                  
+          # GitHub Action to build and push Docker images with Buildx.
+          - name: Build
+            uses: docker/build-push-action@v3
+            with:
+              context: .
+              file: ./Dockerfile
+              platforms: linux/amd64, linux/arm/v7, linux/arm64
+              push: ${{ github.event_name != 'pull_request' }}
+              tags: ${{ steps.docker_meta.outputs.tags }}
+              no-cache: true
+              build-args: |
+                VERSION=${{ steps.docker_meta.outputs.version }}
+                BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+                VCS_REF=${GITHUB_SHA::8}
+              labels: |
+                ${{ steps.docker_meta.outputs.labels }}
+                org.opencontainers.image.title=${{ env.DOCKERHUB_SLUG }}
+                org.opencontainers.image.description=Docker image update notifier
+                org.opencontainers.image.vendor=${{secrets.DOCKERHUB_USERNAME}}
+
+          - name: Check manifest
+            if: github.event_name != 'pull_request'
+            run: |
+              docker buildx imagetools inspect ${{ env.DOCKERHUB_SLUG }}:${{ steps.docker_meta.outputs.version }}
+
+          - name: Inspect image
+            if: github.event_name != 'pull_request'
+            run: |
+              docker pull ${{ env.DOCKERHUB_SLUG }}:${{ steps.docker_meta.outputs.version }}
+              docker image inspect ${{ env.DOCKERHUB_SLUG }}:${{ steps.docker_meta.outputs.version }}
+
+          - name: Clear
+            if: always() && github.event_name != 'pull_request'
+            run: |
+                rm -f ${HOME}/.docker/config.json

@@ -26,8 +26,8 @@ on:
       - '**.md'
       #- '.github/workflows/**'
       - 'docs/**'
-  #schedule:
-  #  - cron: '0 5 * * *' # everyday at 5am
+    schedule:
+    - cron: '0 5 * * *' # everyday at 5am
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:

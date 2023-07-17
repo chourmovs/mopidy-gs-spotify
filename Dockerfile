@@ -30,7 +30,7 @@ RUN apt update \
         # libgtk-4-dev \ Only in bookworm
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /usr/src/gst-plugins-rs
+#WORKDIR /usr/src/gst-plugins-rs
 
 # Workaround for CSound-sys to compile on ARM64
 # COPY build/gst-plugins-rs/csound-sys.patch csound-sys.patch
@@ -52,17 +52,17 @@ RUN sed -i 's/librespot = { version = "0.4", default-features = false }/librespo
 
 # Build GStreamer plugins written in Rust (optional with --no-default-features)
 # --config net.git-fetch-with-cli=true: Uses command-line git instead of  built-in libgit2 to fix OOM Problem (exit code: 137) 
-ENV DEST_DIR /target/gst-plugins-rs
-ENV CARGO_PROFILE_RELEASE_DEBUG false
-RUN export CSOUND_LIB_DIR="/usr/lib/$(uname -m)-linux-gnu" \
-    && export PLUGINS_DIR=$(pkg-config --variable=pluginsdir gstreamer-1.0) \
-    && export SO_SUFFIX=so \
-    && cargo build --release --no-default-features --config net.git-fetch-with-cli=true \
+#ENV DEST_DIR /target/gst-plugins-rs
+#ENV CARGO_PROFILE_RELEASE_DEBUG false
+#RUN export CSOUND_LIB_DIR="/usr/lib/$(uname -m)-linux-gnu" \
+   # && export PLUGINS_DIR=$(pkg-config --variable=pluginsdir gstreamer-1.0) \
+ #   && export SO_SUFFIX=so \
+   # && cargo build --release --no-default-features --config net.git-fetch-with-cli=true \
         # List of packages to build
-        --package gst-plugin-spotify \
+      #  --package gst-plugin-spotify \
     # Use install command to create directory (-d), copy and print filenames (-v), and set attributes/permissions (-m)
-    && install -v -d ${DEST_DIR}/${PLUGINS_DIR} \
-    && install -v -m 755 target/release/*.${SO_SUFFIX} ${DEST_DIR}/${PLUGINS_DIR}
+#    && install -v -d ${DEST_DIR}/${PLUGINS_DIR} \
+ #   && install -v -m 755 target/release/*.${SO_SUFFIX} ${DEST_DIR}/${PLUGINS_DIR}
 
 
 # --- Release Node ---

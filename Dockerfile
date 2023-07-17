@@ -41,14 +41,14 @@ RUN apt update \
 #    esac
 
 # Clone source of gst-plugins-rs to workdir
-ARG GST_PLUGINS_RS_TAG=main
-RUN git clone -c advice.detachedHead=false \
-	--single-branch --depth 1 \
-	--branch ${GST_PLUGINS_RS_TAG} \
-	https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs.git ./
+#ARG GST_PLUGINS_RS_TAG=main
+#RUN git clone -c advice.detachedHead=false \
+	#--single-branch --depth 1 \
+	#--branch ${GST_PLUGINS_RS_TAG} \
+	#https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs.git ./
  
 # EXPERIMENTAL: For gstreamer-spotify set upgraded version number of dependency librespot to 0.4.2 
-RUN sed -i 's/librespot = { version = "0.4", default-features = false }/librespot = { version = "0.4.2", default-features = false }/g' audio/spotify/Cargo.toml
+#RUN sed -i 's/librespot = { version = "0.4", default-features = false }/librespot = { version = "0.4.2", default-features = false }/g' audio/spotify/Cargo.toml
 
 # Build GStreamer plugins written in Rust (optional with --no-default-features)
 # --config net.git-fetch-with-cli=true: Uses command-line git instead of  built-in libgit2 to fix OOM Problem (exit code: 137) 

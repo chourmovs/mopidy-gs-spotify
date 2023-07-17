@@ -44,9 +44,9 @@ jobs:
         steps:
         
         # Github action to get branch or tag information
-         - name: Get branch names
-           id: branch-name
-           uses: tj-actions/branch-names@v6
+          - name: Get branch names
+            id: branch-name
+            uses: tj-actions/branch-names@v6
 
           # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
           - name: Checkout

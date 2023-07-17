@@ -41,8 +41,7 @@ jobs:
           DOCKERHUB_SLUG: chourmovs/mopidy-gs-spotify
           
         # Steps represent a sequence of tasks that will be executed as part of the job
-        steps:
-        
+        steps:          
           # Github action to get branch or tag information
           - name: Get branch names
             id: branch-name

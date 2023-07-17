@@ -1,4 +1,4 @@
-name: Build multi-arch  docker images and publish on DockerHub
+name: Build multi-arch docker images and publish on DockerHub
 
 # Control when actions will run
 # Triggers the workflow on push or pull request events but only for the main/master branch

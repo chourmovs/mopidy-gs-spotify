@@ -42,7 +42,7 @@ jobs:
           
         # Steps represent a sequence of tasks that will be executed as part of the job
         steps:
-          # Github action to get branch or tag information without the /ref/* prefix
+          # Github action to get branch or tag information
           - name: Get branch names
             id: branch-name
             uses: tj-actions/branch-names@v6
@@ -86,7 +86,7 @@ jobs:
           # 2. Mount tempfs with max. size of Swapfile + host's Phys.RAM (max ~6 GB) to dockers filesystem /var/lib/docker (volumes, etc.)
           # Note: If tempfs is too small for build the runner will receive a shutdown signal
           #- name: Hack docker filesystem to create small tmpfs for docker cache
-            run: |
+           run: |
            df -h
            sudo swapon --show
            sudo dd if=/dev/zero of=/swapfile1 bs=1M count=22K 

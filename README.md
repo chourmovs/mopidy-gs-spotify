@@ -1,4 +1,4 @@
-# mopidy-docker: A Docker image for mopidy
+# mopidy-docker: A Docker image for mopidy by chourmovs
 
 [Mopidy](https://mopidy.com/) an extensible music server that plays music from local disk, Spotify, Tidal, Youtube, SoundCloud, TuneIn, and more.
 

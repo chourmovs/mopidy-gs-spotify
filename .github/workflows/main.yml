@@ -43,7 +43,7 @@ jobs:
         # Steps represent a sequence of tasks that will be executed as part of the job
         steps:
         
-        # Github action to get branch or tag information
+          # Github action to get branch or tag information
           - name: Get branch names
             id: branch-name
             uses: tj-actions/branch-names@v6

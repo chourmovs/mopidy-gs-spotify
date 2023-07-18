@@ -40,10 +40,6 @@ jobs:
         env:
         DOCKERHUB_SLUG: chourmovs/mopidy-gs-spotify
 
-
-
-
-
           # GitHub Action to build and push Docker images with Buildx.
 # Steps represent a sequence of tasks that will be executed as part of the job
         steps:

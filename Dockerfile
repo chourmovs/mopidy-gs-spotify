@@ -102,7 +102,7 @@ RUN apt-get update \
 
 # Copy builded target data from Builder DEST_DIR to root
 # Note: target directory tree links directly to $GST_PLUGIN_PATH
-COPY --from=Builder /target/gst-plugins-rs/ /
+# COPY --from=Builder /target/gst-plugins-rs/ /
 
 # Install Node, to build Iris JS application
 RUN curl -fsSL https://deb.nodesource.com/setup_14.x | bash - && \

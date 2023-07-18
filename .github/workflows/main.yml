@@ -147,4 +147,4 @@ jobs:
             if: always() && github.event_name != 'pull_request'
             run: |
                 rm -f 
- ${HOME}/.docker/config.json
+           ${HOME}/.docker/config.json
